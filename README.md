@@ -44,6 +44,7 @@ Schedule-induced polydipsia is a well-established behavioral model used to study
 - MATLAB (tested on R2020a or above)
 - MATLAB Signal Processing Toolbox
 - [WaveClus](https://github.com/csn-le/wave_clus) — used for spike sorting
+- [Fieldtrip] (https://github.com/fieldtrip) — used for spectral and rste analysis
 - [medpc-behavior](https://github.com/sergio-conde/medpc-behavior) — used for behavioral data parsing
 
 ## Data availability

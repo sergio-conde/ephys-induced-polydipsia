@@ -11,16 +11,32 @@ function cfg = sipConfig(varargin)
 fullConfig = {'task', 'behavior', 'video','spike', 'lfp', 'colors'}; 
 
 reqConfig = varargin;
-
 if isempty(reqConfig)
-    addParams = fullConfig;
-else
-    addParams = checkRequested(reqConfig,fullConfig);
+    reqConfig = fullConfig;
 end
 
-cfg = [];
-cfg = addConfig(cfg,'file');
-for iParam = 1:length(addParams)
+cfg = []; % Initializing output
+
+% Folder structure as default
+% files configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cfg.folder.root           = '\\vs03\VS03-NandB-1\tara\ephys_rat_sip';       % project's root folder
+cfg.folder.raw            = [cfg.folder.root '\Data_collection\raw'];       % data's raw matlab files folder
+cfg.folder.proc           = [cfg.folder.root '\Data_collection\processed']; % data's preprocessed folder
+cfg.folder.analysis       = [cfg.folder.root '\Data_analysis'];             % data's analysis folder
+cfg.folder.publications   = [cfg.folder.root '\Publications'];              % data's Publications folder
+cfg.folder.support        = [cfg.folder.proc '\support'];                   % data's support files folder
+cfg.folder.level_name     = {'cohort','animal','session'};                  % labels of each organization level
+cfg.folder.folder_coding  = {'cohort*','w*','*'};                           % string coding for each level (folders)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% raw data info %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cfg.data.nrats        = 16;
+cfg.data.nlynxs_files = {'ntt','csc'};
+cfg.data.nlynxs_label = {'TT','CSC'};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+for iParam = 1:length(reqConfig)
+  cfg = addConfig(cfg,'file');
 end
 
 function cfg = addConfig(cfg,param)
@@ -32,58 +48,23 @@ switch param
     case 'spike'
     case 'lfp'
     case 'colors'
-        % otherwise can replace the checkRequested function
+    otherwise
+        warning(['WARNING: Configuration request invalid\n' ...
+            'The following field was ignored: \n'])
+        sprintf('%s/n/n',param)
 end
 
-function addParams = checkRequested(reqConfig,fullConfig)
-
-validRequest = ismember(reqConfig,fullConfig);
-addParams = fullConfig(validRequest);
-
-if ~all(validRequest)
-    invalidRequest = reqConfig(~validRequest);
-    warning(['WARNING: One or more configuration request invalid\n\n' ...
-        'The following fields were ignored: \n'])
-    celldisp(invalidRequest)
-end
-
-
-% files configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cfg.file.root           = '\\vs03\VS03-NandB-1\tara\ephys_rat_sip';             % project's root folder
-cfg.file.raw            = [cfg.file.root '\Data_collection\raw'];               % data's raw matlab files folder
-cfg.file.proc           = [cfg.file.root '\Data_collection\processed'];         % data's preprocessed folder
-cfg.file.analysis       = [cfg.file.root '\Data_analysis'];                     % data's analysis folder
-cfg.file.publications   = [cfg.file.root '\Publications'];                      % data's analysis folder
-cfg.file.support        = [cfg.file.proc '\support'];                           % data's support files folder
-cfg.file.level_name     = {'cohort','animal','session'};                        % labels of each organization level
-cfg.file.folder_coding  = {'cohort*','w*','*'};                                 % string coding for each level (folders)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-% sorted files configuration 
-% cfg.file.spkfile.main_path      = cfg.file.proc;
-% cfg.file.spkfile.level_name     = {'cohort','animal','session','aux','tetrode'};  % labels of each organization level
-% cfg.file.spkfile.folder_coding  = {'cohort*','w*','sip*','sorted_data','tt*'};    % string coding for each level (folders)
-% cfg.file.spkfile.file_str       = 'times_*.mat';
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % load supporting files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-load([cfg.file.support '\ch_info.mat'],'ch_info');          % load selected channels
+% load([cfg.file.support '\ch_info.mat'],'ch_info');          % load selected channels
 % load([cfg.file.proc '\spike_list.mat'],'spike_list');       % load sorted list files
-load([cfg.file.support '\file_list.mat'],'file_list');      % load the neralynx list files
+% load([cfg.file.support '\file_list.mat'],'file_list');      % load the neralynx list files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % supporting file lists %%%%%%%%%%%%%%%%%
-cfg.file_list.nlynx         = file_list;
+% cfg.file_list.nlynx         = file_list;
 % cfg.file_list.sorted_files  = spike_list;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -101,32 +82,7 @@ cfg.file_list.nlynx         = file_list;
 % cfg.waveclus.grph.srate         = 30303;    % Sample rate
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% analysis configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-cfg.analysis.nlynxs_files   = {'ntt','csc'};
-cfg.analysis.nlynxs_label   = {'TT','CSC'};
 
-
-sel_rats  = {[1 2],[1 2],1,1:6,2:6};          % selected rats rom each cohort
-rat_ids   = zeros(0,2);
-for icoh = 1:5
-    for irat = 1:length(sel_rats{icoh})
-        rat_ids = cat(1,rat_ids,...
-            [icoh sel_rats{icoh}(irat)]);
-    end
-end
-rat_labels = cell(cfg.analysis.nrats,1);
-for irat = 1:cfg.analysis.nrats
-    rat_labels{irat} = sprintf('C%iW0%i',rat_ids(irat,1),rat_ids(irat,2));
-end
-load(fullfile(cfg.file.proc,'animal_groups.mat'),"group")
-
-drink_group = cell(cfg.analysis.nrats,1);
-[drink_group{group.id == 1}] = deal('ld');
-[drink_group{group.id == 2}] = deal('hd');
-
-rat_ids =[rat_labels num2cell([(1:cfg.analysis.nrats)' rat_ids group.id]) drink_group];
-rat_ids = cell2table(rat_ids,'VariableNames',...
-    {'label','tag_id','cohort_id','animal_id','drink_id','drink_gr'});
 
 cfg.analysis.rat_ids        = rat_ids;                          % 
 cfg.analysis.nrats          = size(rat_ids,1);                  % number of rats following the configuration
