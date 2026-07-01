@@ -59,7 +59,7 @@ switch param
 
     case 'behavior'
         cfg.behavior.drinkGroup    = {'ld','hd'};                      % High and low drinkers label
-        cfg.behavior.lickLabel     = {'plus','minus'};                 % High and low drinkers label
+        cfg.behavior.lickLabel     = {'plus','minus'};                 % Lick Plus and Minus label
         cfg.behavior.events        = {'lick','headent'};               % main behavioral events
         cfg.behavior.interBout     = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
         cfg.behavior.min_bout_dur  = [2 1];                            % minimum duration of one bout

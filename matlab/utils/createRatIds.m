@@ -1,4 +1,8 @@
 
+
+
+
+
 sel_rats  = {[1 2],[1 2],1,1:6,2:6};          % selected rats rom each cohort
 rat_ids   = zeros(0,2);
 for icoh = 1:5
