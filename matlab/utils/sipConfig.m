@@ -33,6 +33,7 @@ cfg.folder.folderCoding  = {'cohort*','w*','*'};                           % str
 cfg.data.nRats        = 16;
 cfg.data.nlynxsFiles = {'ntt','csc'};
 cfg.data.nlynxsLabel = {'TT','CSC'};
+% CREATE RAT IDS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iParam = 1:length(reqConfig)
