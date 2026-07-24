@@ -1,11 +1,13 @@
 function cfg = sipConfig(varargin)
 
-% sip_mainconfig loads the main configuration parameters of the
+% sipConfig loads the main configuration parameters of the
 % schedule-induced polydipsia project. This includes:
 %
 % file - Paths of the project's folder structure
 % task - Parameters of the sip task (e.g, cues, sessions, etc.)
 % behavior - Bout definitions
+
+%%% THE FUNCTION INFO NEEDS UPDATE! %%%%
 
 %%%%% possible field parameters to be included %%%%%
 fullConfig = {'task', 'behavior', 'video','spike', 'lfp', 'colors'}; 
