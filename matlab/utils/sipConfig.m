@@ -31,14 +31,21 @@ cfg.folder.folderCoding  = {'cohort*','w*','*'};                           % str
 
 % raw data info %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cfg.data.nRats        = 16;
-cfg.data.nlynxsFiles = {'ntt','csc'};
-cfg.data.nlynxsLabel = {'TT','CSC'};
-% CREATE RAT IDS
+cfg.data.nlynxsFiles  = {'ntt','csc'};
+cfg.data.nlynxsLabel  = {'TT','CSC'};
+cfg.data.area         = {'ofc','str'};                    % brain areas labels
+cfg.data.areaLabel    = {'OFC','Striatum'};               % brain areas labels
+% cfg.data.rat_ids    = rat_ids;                          % 
+cfg.data.early       = repmat(1:3,16,1);
+cfg.data.transition  = repmat(12:14,16,1);
+cfg.data.late        = [[18 19 20];[21 22 23];repmat(18:20,2,1);[23 24 25];...
+                        repmat(23:25,7,1);repmat(23:25,3,1);[21 23 24]];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iParam = 1:length(reqConfig)
   cfg = addConfig(cfg,'file');
 end
+
 
 function cfg = addConfig(cfg,param)
 
@@ -80,8 +87,45 @@ switch param
         cfg.video.box.mag        = [465,270];
         cfg.video.box.drink      = [75 270];
         cfg.video.box.max_dist   = 5;  % [cm] distances less than this denote proximity to, for example, the cue
+
     case 'spike'
+        cfg.spike.cellTypes  = {'pyr','int','msn','fsi','cin'};
+        cfg.spike.cellLabel  = {'Pyramidal','Interneuron','MSN','FSI','Cholinergic'};
+        %waveclus configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        cfg.spike.waveclus        = set_parameters();     % set Waveclu's default parameters
+        cfg.spike.waveclus.w_pre  = 8;                    % samples before the alignment sample
+        cfg.spike.waveclus.w_post = 24;                   % samples after the alignment sample
+
+        % visualization %%%
+        cfg.spike.waveclus.grph.unit_color    = parula;   % units (clusters) colormap
+        cfg.spike.waveclus.grph.elect_color   = jet;      % electrode colormap
+        cfg.spike.waveclus.grph.ndims         = 2;        % PCA dimensions to plot
+        cfg.spike.waveclus.grph.max_spk       = 200;      % Maximum spike number to plot
+        cfg.spike.waveclus.grph.align_sample  = 8;        % Waveform peak (sample)
+        cfg.spike.waveclus.grph.srate         = 30303;    % Sample rate
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     case 'lfp'
+        cfg.lfp.band_freq = [1 4;5 10;12 30;30 50];
+        cfg.lfp.band_label = {'delta','theta','beta','gamma'};
+
+        % spec analysis configuration %%%%%%%%%%%%%%
+        cfg.lfp.psds              = [];
+        cfg.lfp.psds.method       = 'irasa';
+        cfg.lfp.psds.taper        = 'hanning';
+        cfg.lfp.psds.keeptrials   = 'yes';
+        cfg.lfp.psds.pad          = 'nextpow2';
+        cfg.lfp.psds.foi          = 0:0.05:100;
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        % Spectrogram main configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        cfg.lfp.spgrm.t_win   = 2;       % in seconds
+        cfg.lfp.spgrm.overlap = 0.75;    % overlap (%)
+        cfg.lfp.spgrm.nfft    = 2^14;    % frequency resolution
+        cfg.lfp.spgrm.tlim    = [-7 45]; % time interval in secs. 0 = trial start (cue onset)
+        cfg.lfp.spgrm.flim    = [1 100]; % frequency band
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     case 'colors'
         cfg.color.rat     = jet(16);
         cfg.color.session = summer(25);
@@ -101,62 +145,18 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% CREATE A SEPARATED FUNCTION TO LOAD ALL THE NECESSARY FILES DEPENDING ON
+% THE ANALYSIS
 % load supporting files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load([cfg.file.support '\ch_info.mat'],'ch_info');          % load selected channels
 % load([cfg.file.proc '\spike_list.mat'],'spike_list');       % load sorted list files
 % load([cfg.file.support '\file_list.mat'],'file_list');      % load the neralynx list files
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % supporting file lists %%%%%%%%%%%%%%%%%
 % cfg.file_list.nlynx         = file_list;
 % cfg.file_list.sorted_files  = spike_list;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% waveclus configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% cfg.waveclus        = set_parameters();     % set Waveclu's default parameters 
-% cfg.waveclus.w_pre  = 8;                    % samples before the alignment sample
-% cfg.waveclus.w_post = 24;                   % samples after the alignment sample
-% 
-% % visualization %%%
-% cfg.waveclus.grph.unit_color    = parula;   % units (clusters) colormap
-% cfg.waveclus.grph.elect_color   = jet;      % electrode colormap
-% cfg.waveclus.grph.ndims         = 2;        % PCA dimensions to plot
-% cfg.waveclus.grph.max_spk       = 200;      % Maximum spike number to plot
-% cfg.waveclus.grph.align_sample  = 8;        % Waveform peak (sample) 
-% cfg.waveclus.grph.srate         = 30303;    % Sample rate
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-% cfg.analysis.rat_ids        = rat_ids;                          % 
 % cfg.analysis.nrats          = size(rat_ids,1);                  % number of rats following the configuration
-
-cfg.task.sessionEpochs  = {'early','transition','late'};
-cfg.task.cueDuration    = 5;                                % cue duration in sec
-cfg.task.wois = {
-    'pre_all', ...
-    'pre_event', ...
-    'pre_cue', ...
-    'cue', ...
-    'intake', ...
-    'event', ...
-    'no_event'};               
-cfg.task.manipulations  = {'none', 'baseline1', 'baseline2',...
-    'habituation', 'baseline', 'saline', 'dry', 'quinine', 'adlib',...
-    'veh', 'mtep', 'extinction'};  
-
-
 % cfg.analysis.channels       = ch_info;
-
-cfg.ephys.area       = {'ofc','str'};                    % brain areas labels
-cfg.ephys.areaLabel  = {'OFC','Striatum'};               % brain areas labels
-cfg.spike.cellTypes  = {'pyr','int','msn','fsi','cin'};
-cfg.spike.cellLabel  = {'Pyramidal','Interneuron','MSN','FSI','Cholinergic'};
-% cfg.ephys.early       = repmat(1:3,16,1);
-% cfg.ephys.transition  = repmat(12:14,16,1);
-% cfg.ephys.late        = [[18 19 20];[21 22 23];repmat(18:20,2,1);[23 24 25];...
-%                         repmat(23:25,7,1);repmat(23:25,3,1);[21 23 24]];
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
