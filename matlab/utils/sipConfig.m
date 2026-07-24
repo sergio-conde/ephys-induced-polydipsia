@@ -43,7 +43,7 @@ cfg.data.late        = [[18 19 20];[21 22 23];repmat(18:20,2,1);[23 24 25];...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iParam = 1:length(reqConfig)
-  cfg = addConfig(cfg,'file');
+  cfg = addConfig(cfg,reqConfig{iParam});
 end
 
 
@@ -138,9 +138,7 @@ switch param
         cfg.color.minus   = 0.65 * ones(1,3);
         cfg.color.gray    = 0.65 * ones(1,3);
     otherwise
-        warning(['WARNING: Configuration request invalid\n' ...
-            'The following field was ignored: \n'])
-        sprintf('%s/n/n',param)
+        warning('INVALID CONFIGURATION REQUEST. \nThe following field was ignored: %s\n',param)
 end
 
 
