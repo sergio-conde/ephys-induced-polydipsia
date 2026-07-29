@@ -72,6 +72,8 @@ for isession = 5%:length(sessionIds)
 
         loopLFP = importdata(sessionLfp.file_path);
 
+        % Extract, cut and store beta phase information
+
         timeIn = trl * 1e-6; % Trial times in seconds
         startTime = loopLFP.time{1}(1); % start time in seconds 
         [trlSamples, resampTable] = resampTrl(timeIn,trlTable,startTime,loopLFP.fsample);
@@ -81,8 +83,13 @@ for isession = 5%:length(sessionIds)
         trialCfg.trl  = trlSamples;
         lfps.(areaLabel) = ft_redefinetrial(trialCfg,loopLFP);
     end
-    lfps.trialsInfo = resampTable;
-
-    
+    lfps.trialsInfo = resampTable;  
 
 end
+%%
+% artefactos
+% coherencia en cada epoch (3 sesiones)
+% -> 3 x 7 x 2001 (sesion x epoch x freq)
+% media de coherencia/epoch
+% -> 7 x 2001 x 7 (epoch x freq x animal)
+% media across animals
