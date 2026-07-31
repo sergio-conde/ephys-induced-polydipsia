@@ -38,11 +38,13 @@ cfg.tetrode       = sip.ephys.tetrodes;
 cfg.epoch         = 'late';
 cfg.tet_selection = 'wide';
 lateFiles         = pickLFP(cfg);
+
 % sessionFiles = unique([[lateFiles.cohort_id]' [lateFiles.animal_id]' [lateFiles.session_id]'],"rows");
 
 sessionIds = getId(lateFiles,'tet_id');
+
 %%
-for isession = 5%:length(sessionIds)
+for isession = 6%:length(sessionIds)
 
     fileIds = sessionIds(isession);
     header_file = get_entry(sip.file_list.nlynx.ncs,fileIds);
@@ -52,8 +54,9 @@ for isession = 5%:length(sessionIds)
     cfg.beh         = get_entry(behavior,fileIds);
     cfg.interval    = 'sip_trial';
     [trl,trlTable]  = trial_gen(cfg);
-    %this trl coming from trial_gen is time, not samples as the one coming
-    %from ft_definetrials. I should call this differently. 
+
+    % this trl coming from trial_gen is time, not samples as the one coming
+    % from ft_definetrials. I should call this differently. 
 
     sessArtefact = get_entry(artefacts,fileIds);
 
@@ -72,6 +75,15 @@ for isession = 5%:length(sessionIds)
 
         loopLFP = importdata(sessionLfp.file_path);
 
+        for iband = 1:3
+            filtTraces = eegfilt(loopLFP.trial{1},...
+                loopLFP.fsample,...
+                sip.ephys.band_freq(iband,1),...
+                sip.ephys.band_freq(iband,2);
+
+            phases = angle(hilbert(theta_traces')); % phases from the analytical signal
+        end
+        
         % Extract, cut and store beta phase information
 
         timeIn = trl * 1e-6; % Trial times in seconds
