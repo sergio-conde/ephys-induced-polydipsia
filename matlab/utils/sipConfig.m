@@ -6,6 +6,10 @@ function cfg = sipConfig(varargin)
 % file - Paths of the project's folder structure
 % task - Parameters of the sip task (e.g, cues, sessions, etc.)
 % behavior - Bout definitions
+%
+% Sergio Conde-Ocazionez, August 2024. 
+% Neuromodulation & Behavior Laboratory
+% Netherlands Institute for Neuroscience.
 
 %%% THE FUNCTION INFO NEEDS UPDATE! %%%%
 
@@ -35,13 +39,13 @@ cfg.folder.folderCoding  = {'cohort*','w*','*'};                           % str
 cfg.data.nRats        = 16;
 cfg.data.nlynxsFiles  = {'ntt','csc'};
 cfg.data.nlynxsLabel  = {'TT','CSC'};
-cfg.data.area         = {'ofc','str'};                    % brain areas labels
-cfg.data.areaLabel    = {'OFC','Striatum'};               % brain areas labels
-% cfg.data.rat_ids    = rat_ids;                          % 
-cfg.data.early       = repmat(1:3,16,1);
-cfg.data.transition  = repmat(12:14,16,1);
-cfg.data.late        = [[18 19 20];[21 22 23];repmat(18:20,2,1);[23 24 25];...
-                        repmat(23:25,7,1);repmat(23:25,3,1);[21 23 24]];
+cfg.data.area         = {'ofc','str'};      % brain areas labels
+cfg.data.areaLabel    = {'OFC','Striatum'}; % brain areas labels
+cfg.data.ratIds       = setRatIds(fullfile(cfg.folder.support,'drinkGroup.mat'));                           
+sessions = setSessions;
+cfg.data.early       = sessions.early;
+cfg.data.transition  = sessions.transition;
+cfg.data.late        = sessions.late;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iParam = 1:length(reqConfig)
