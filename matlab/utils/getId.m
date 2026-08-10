@@ -1,19 +1,37 @@
-function ids = getId(dataInfo,exclLevel)
+function ids = getId(dataInfo,varargin)
+
+% ids = getId(dataInfo,exclLevel) gets the ids from any table of indexed
+% struct containing files lists, indexed data, etc. 
+%
+% dataInfo - table or struct
+% exclLevel - level to be excluded
+%
+% Schedule-Induced Polydipsia project. 
+% Sergio Conde-Ocazionez, August 2026. 
+% Neuromodulation & Behavior Laboratory
+% Netherlands Institute for Neuroscience.
+
+
+outType = 'table';
 
 dataFields = fieldnames(dataInfo);
 idFields = dataFields(contains(dataFields,'_id'));
 
-refLevels = setdiff(idFields,exclLevel,'stable');
-
-structFlag = false;
-if isstruct(dataInfo)
-    dataInfo = struct2table(dataInfo);
-    structFlag = true;
+if nargin > 1
+    idFields = setdiff(idFields,varargin{1},'stable');
+    if nargin > 2
+        outType = varargin{2};
+    end
 end
 
-[~, idx] = unique(dataInfo(:,refLevels),"rows","stable");
-ids = dataInfo(idx,refLevels);
+if isstruct(dataInfo)
+    dataInfo = struct2table(dataInfo);
+end
 
-if structFlag
-    ids = table2struct(ids);
+[~, idx] = unique(dataInfo(:,idFields),"rows","stable");
+ids = dataInfo(idx,idFields);
+
+switch outType
+    case 'struct'
+        ids = table2struct(ids);
 end
