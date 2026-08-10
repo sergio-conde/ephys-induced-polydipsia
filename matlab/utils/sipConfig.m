@@ -14,11 +14,11 @@ function cfg = sipConfig(varargin)
 %%% THE FUNCTION INFO NEEDS UPDATE! %%%%
 
 %%%%% possible field parameters to be included %%%%%
-fullConfig = {'task', 'behavior', 'video','spike', 'lfp', 'colors'}; 
 
 reqConfig = varargin;
-if isempty(reqConfig)
-    reqConfig = fullConfig;
+
+if strcmp(varargin,'full')
+    reqConfig = {'task', 'behavior', 'video','spike', 'lfp', 'colors'};
 end
 
 cfg = []; % Initializing output
@@ -72,11 +72,11 @@ switch param
             'veh', 'mtep', 'extinction'};
 
     case 'behavior'
-        cfg.behavior.drinkGroup    = {'ld','hd'};                      % High and low drinkers label
-        cfg.behavior.lickLabel     = {'plus','minus'};                 % Lick Plus and Minus label
-        cfg.behavior.events        = {'lick','headent'};               % main behavioral events
-        cfg.behavior.interBout     = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
-        cfg.behavior.min_bout_dur  = [2 1];                            % minimum duration of one bout
+        cfg.behavior.drinkGroup  = {'ld','hd'};                      % High and low drinkers label
+        cfg.behavior.lickLabel   = {'plus','minus'};                 % Lick Plus and Minus label
+        cfg.behavior.events      = {'lick','headent'};               % main behavioral events
+        cfg.behavior.interBout   = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
+        cfg.behavior.minBoutDur  = [2 1];                            % minimum duration of one bout
 
     case 'video'
         cfg.video.vrate        = 25;         % video sampling rate in frames/s
