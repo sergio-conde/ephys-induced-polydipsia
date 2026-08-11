@@ -13,17 +13,18 @@ function ratIds = setRatIds(groupFile)
 selRats  = {[1 2],[1 2],1,1:6,2:6}; % selected rats rom each cohort
 
 nRats = length([selRats{:}]);
-ratIds = cell2table(cell(nRats,4),...
-    "VariableNames",{'label','tag_id','cohort_id','animal_id'});
+ratIds = table('Size',[nRats 4],...
+    'Variabletypes',["string" "double" "double" "double"],...
+    'Variablenames',{'label','tag_id','cohort_id','animal_id'});
 
 ratTag = 1;
 for icohort = 1:length(selRats)
     for irat = 1:length(selRats{icohort})
         ratIds.label{ratTag} = sprintf('C%iW0%i',...
             icohort,selRats{icohort}(irat));
-        ratIds.tag_id{ratTag} = ratTag;
-        ratIds.cohort_id{ratTag} = icohort;
-        ratIds.animal_id{ratTag} = selRats{icohort}(irat);
+        ratIds.tag_id(ratTag) = ratTag;
+        ratIds.cohort_id(ratTag) = icohort;
+        ratIds.animal_id(ratTag) = selRats{icohort}(irat);
         ratTag = ratTag + 1;
     end
 end
