@@ -103,16 +103,16 @@ switch param
         cfg.spike.waveclus.w_post = 24;                   % samples after the alignment sample
 
         % visualization %%%
-        cfg.spike.waveclus.grph.unit_color    = parula;   % units (clusters) colormap
-        cfg.spike.waveclus.grph.elect_color   = jet;      % electrode colormap
-        cfg.spike.waveclus.grph.ndims         = 2;        % PCA dimensions to plot
-        cfg.spike.waveclus.grph.max_spk       = 200;      % Maximum spike number to plot
-        cfg.spike.waveclus.grph.align_sample  = 8;        % Waveform peak (sample)
-        cfg.spike.waveclus.grph.srate         = 30303;    % Sample rate
+        cfg.spike.waveclus.graph.unitColor    = parula;   % units (clusters) colormap
+        cfg.spike.waveclus.graph.electColor   = jet;      % electrode colormap
+        cfg.spike.waveclus.graph.ndims        = 2;        % PCA dimensions to plot
+        cfg.spike.waveclus.graph.maxSpk       = 200;      % Maximum spike number to plot
+        cfg.spike.waveclus.graph.alignSample  = 8;        % Waveform peak (sample)
+        cfg.spike.waveclus.graph.srate        = 30303;    % Sample rate
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     case 'lfp'
-        cfg.lfp.band_freq = [1 4;5 10;12 30;30 50];
+        cfg.lfp.band_freq = [1 4;4 12;12 30;30 50];
         cfg.lfp.band_label = {'delta','theta','beta','gamma'};
 
         % spec analysis configuration %%%%%%%%%%%%%%
@@ -125,7 +125,7 @@ switch param
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % Spectrogram main configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        cfg.lfp.spgrm.t_win   = 2;       % in seconds
+        cfg.lfp.spgrm.timeWin = 2;       % in seconds
         cfg.lfp.spgrm.overlap = 0.75;    % overlap (%)
         cfg.lfp.spgrm.nfft    = 2^14;    % frequency resolution
         cfg.lfp.spgrm.tlim    = [-7 45]; % time interval in secs. 0 = trial start (cue onset)
