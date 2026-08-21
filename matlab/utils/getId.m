@@ -1,4 +1,4 @@
-function ids = getId(dataInfo,varargin)
+function ids = getID(dataInfo,varargin)
 
 % ids = getId(dataInfo,exclLevel) gets the ids from any table of indexed
 % struct containing files lists, indexed data, etc. 
@@ -15,7 +15,7 @@ function ids = getId(dataInfo,varargin)
 outType = 'table';
 
 dataFields = fieldnames(dataInfo);
-idFields = dataFields(contains(dataFields,'_id'));
+idFields = dataFields(contains(dataFields,'ID'));
 
 if nargin > 1
     idFields = setdiff(idFields,varargin{1},'stable');

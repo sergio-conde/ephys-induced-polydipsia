@@ -4,21 +4,21 @@ function outFileList = addSipIds(inFileList,fileType)
 %
 % addSipIds function adds:
 %
-% cohort_id
-% animal_id
-% session_id
-% tet_id
+% cohortID
+% animalID
+% sessionID
+% tetrodeID
 % manipulation
 %
 % The function deals with all the variable folder and file naming
 % specificaly of the SIP project.
 %
 %   Inputs:
-%     in_list: structure containing at least one field with the session name
-%       in_list(ifile).session: full name of the ifile                              [string]
+%     inFileList: structure containing at least one field with the session name
+%       inFileList(ifile).session: full name of the ifile                              [string]
 %
 %   Outputs:
-%     out_list: Output struct containing the same fields of f_list + id fields  
+%     outFileList: Output struct containing the same fields of f_list + ID fields  
 %
 % v1.0: October 2023 
 % v2.0: August 2026
@@ -33,46 +33,50 @@ for ifile = 1:length(outFileList)
 
     cohort = outFileList(ifile).cohort;
     if strcmp(cohort(1), 'u')
-        outFileList(ifile).cohort_id = str2double(cohort(2:end));
+        outFileList(ifile).cohortID = str2double(cohort(2:end));
     else
-        outFileList(ifile).cohort_id = str2double(cohort(end));
+        outFileList(ifile).cohortID = str2double(cohort(end));
     end
 
     animal = outFileList(ifile).animal;
-    outFileList(ifile).animal_id = str2double(animal(2:end));
+    outFileList(ifile).animalID = str2double(animal(2:end));
 
     session = outFileList(ifile).session;
     if strcmp(session,'baseline1')
-        outFileList(ifile).session_id = 101;
+        outFileList(ifile).sessionID = 101;
     elseif strcmp(session,'baseline2')
-        outFileList(ifile).session_id = 102;
+        outFileList(ifile).sessionID = 102;
     elseif strcmp(session,'habituation')
-        outFileList(ifile).session_id = 0;
+        outFileList(ifile).sessionID = 0;
     elseif strcmp(session(1:3),'sip')
-        outFileList(ifile).session_id = str2double(session(4:5));
+        outFileList(ifile).sessionID = str2double(session(4:5));
     elseif strcmp(session(1:2),'wn')
-        outFileList(ifile).session_id = -1;
+        outFileList(ifile).sessionID = -1;
     end
 
     if isfield(inFileList,'name')
-        f_name = outFileList(ifile).name;
+        fileName = outFileList(ifile).name;
         switch fileType
             case 'ntt'
-                outFileList(ifile).tet_id = str2double(f_name(3:strfind(f_name,'.ntt') - 1));
-                outFileList(ifile).file_label = f_name(1:strfind(f_name,'.ntt') - 1);
+                outFileList(ifile).tetrodeID = str2double(fileName(3:strfind(fileName,'.ntt') - 1));
+                outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.ntt') - 1);
+                outFileList(ifile).fileType = 'spike';
             case 'ncs'
-                outFileList(ifile).tet_id = str2double(f_name(4:strfind(f_name,'.ncs') - 1));
-                outFileList(ifile).file_label = f_name(1:strfind(f_name,'.ncs') - 1);
+                outFileList(ifile).tetrodeID = str2double(fileName(4:strfind(fileName,'.ncs') - 1));
+                outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.ncs') - 1);
+                outFileList(ifile).fileType = 'lfp';
+            case 'med'
+                outFileList(ifile).fileType = 'medpc';
             case 'sorted'
-                outFileList(ifile).tet_id = str2double(outFileList(ifile).tt(3:end));
-                outFileList(ifile).file_label = f_name(1:strfind(f_name,'.mat') - 1);
+                outFileList(ifile).tetrodeID = str2double(outFileList(ifile).tt(3:end));
+                outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.mat') - 1);
             otherwise
-                outFileList(ifile).file_label = f_name(1:strfind(f_name,'.mat') - 1);
+                outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.mat') - 1);
         end
     end
 
     if isfield(inFileList,'tet')
-        outFileList(ifile).tet_id = str2double(outFileList(ifile).tet(3:end));
+        outFileList(ifile).tetrodeID = str2double(outFileList(ifile).tet(3:end));
     end
 
     if strcmp(session(1:4),'base') || strcmp(session,'habituation') || strcmp(session,'unknown')
@@ -89,6 +93,4 @@ for ifile = 1:length(outFileList)
             outFileList(ifile).manipulation = 'none';
         end
     end
-
-
 end

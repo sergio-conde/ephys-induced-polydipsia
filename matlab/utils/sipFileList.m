@@ -15,6 +15,8 @@ switch analysis
     case 'behavior'
         fileLists = load(fullfile(listFolder, '\rawFilesList.mat'),...
             "eveFiles","medFiles");
+    case 'lfp'
+    case 'spike'
     otherwise
         fileLists = [];
 end

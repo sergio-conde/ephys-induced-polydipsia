@@ -17,7 +17,7 @@ load(fullfile(sip.folder.support,'rawFilesList.mat'),'ncsFiles')
 tetSelection = 'wide';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-sessLabel = 'transition';  % early; late
+sessLabel = 'late';  % early; late
 
 sessions = sip.data.(sessLabel);
 tetrodes = tetrode_epoch.(sessLabel);
@@ -114,7 +114,7 @@ for itag = 3:16
                 psds.ids.session_id,...
                 sessLabel);
 
-            save(fullfile(session_folder.full,file_name),"psds")
+            % save(fullfile(session_folder.full,file_name),"psds")
         end
         
     end
