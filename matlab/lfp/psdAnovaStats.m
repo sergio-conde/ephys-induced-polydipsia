@@ -1,17 +1,17 @@
 %%
 clear; clc
-sip = sip_mainconfig;
+% sip = sip_mainconfig;
 sessions = 'late';
 filename = strcat('psdQuant',sessions,'.mat');
-load(fullfile(sip.file.proc,filename))
-% load('C:\Users\scond\OneDrive\Escritorio\psdQuantlate.mat')
+% load(fullfile(sip.file.proc,filename))
+load('C:\Users\scond\OneDrive\Escritorio\psdQuantlate.mat')
 
 %% Test different stats configuration
 
 cfg = [];
 cfg.testArea = 'striatum'; % ofc / striatum
 cfg.based = 'session'; % animal / session
-cfg.testQuant = 'NormDf'; % Diff / Ratio
+cfg.testQuant = 'Diff'; % Diff / Ratio
 cfg.testBand = 'Theta';
 cfg.model = 'mixed';
 if strcmp(cfg.model,'repeated')
@@ -25,7 +25,7 @@ psdTest = sipPsdAnova(cfg);
 
 
 %%
-plotData = psdTest.cfg.testPsd;
+plotData = psdTest.anova.data;
 % Bar graphs
 meanData = groupsummary(plotData,...
     'Group', ...
