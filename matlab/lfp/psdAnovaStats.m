@@ -4,6 +4,7 @@ sip = sip_mainconfig;
 sessions = 'late';
 filename = strcat('psdQuant',sessions,'.mat');
 load(fullfile(sip.file.proc,filename))
+% load('C:\Users\scond\OneDrive\Escritorio\psdQuantlate.mat')
 
 %% Test different stats configuration
 
@@ -11,7 +12,7 @@ cfg = [];
 cfg.testArea = 'striatum'; % ofc / striatum
 cfg.based = 'session'; % animal / session
 cfg.testQuant = 'NormDf'; % Diff / Ratio
-cfg.testBand = 'Delta';
+cfg.testBand = 'Theta';
 cfg.model = 'mixed';
 if strcmp(cfg.model,'repeated')
     cfg.group = 'hd';
@@ -21,6 +22,7 @@ cfg.testPsd = psdQuant.(cfg.testArea);
 clc
 disp(cfg)
 psdTest = sipPsdAnova(cfg);
+
 
 %%
 plotData = psdTest.cfg.testPsd;
