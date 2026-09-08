@@ -55,6 +55,7 @@ disp(ranovatbl(modelLabels,'pValue'))
 psdTest.cfg = cfg;
 psdTest.cfg.testEpochs = testEpochs;
 psdTest.cfg.withinDesign = withinDesign;
+psdTest.anova.data = testData;
 psdTest.anova.fitModel = rm;
 psdTest.anova.tbl = ranovatbl;
 psdTest.anova.modelLabels = modelLabels;
