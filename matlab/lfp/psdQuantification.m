@@ -18,7 +18,10 @@ if strcmp(sessions,'late')
     % remove session 23 from c5w06 -> behavioral outlier
     irasa_files(44) = [];
     % remove cohort 1 -> bad signal
-    irasa_files(1:4) = [];
+    irasa_files(1:4) = []; 
+elseif strcmp(sessions,'early')
+    % remove cohort 1 -> bad signal
+    irasa_files(1:10) = []; 
 end
 
 psdQuant = [];
@@ -58,11 +61,13 @@ for ifile = 1:length(irasa_files)
         art_cfg.tet_id = tet_info.wide;
         sess_art = getEntry(artefacts,art_cfg);
 
-        if ismember(irasa_files(ifile).tag_id,[5 6 7 12])
-            clean_flags = sess_art.woi_percg < 1;
-        else
-            clean_flags = true(size(sess_art.woi_percg));
-        end
+        clean_flags = sess_art.woi_percg < 1;
+
+        % if ismember(irasa_files(ifile).tag_id,[5 6 7 12])
+        %     clean_flags = sess_art.woi_percg < 1;
+        % else
+        %     clean_flags = true(size(sess_art.woi_percg));
+        % end
 
         for ievent = [1 2 3 6 7]
             
