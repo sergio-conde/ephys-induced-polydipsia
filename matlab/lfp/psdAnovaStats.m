@@ -11,139 +11,126 @@ end
 
 %% Test different stats configurations for early and late sessions
 
-cfg = [];
-cfg.testArea = 'striatum'; % ofc / striatum
-cfg.based = 'session'; % animal / session
-cfg.testQuant = 'Diff'; % Diff / Ratio
-cfg.testBand = 'Delta';
-cfg.model = 'mixed';
-if strcmp(cfg.model,'repeated')
-    cfg.group = 'hd';
+bandLabels = {'Delta','Theta','Beta'};
+
+anovaModel = 'mixed';
+
+if strcmp(anovaModel,'mixed')
+    testGroup = 'hd | ld';
+    nComp = 3;
+else
+    testGroup = 'hd';
+    nComp = 1;
 end
-cfg.testPsd = psdContrast.(sessions{isessions}).(cfg.testArea);
 
-psdTest = sipPsdAnova(cfg);
-
-idLabels = setdiff(fieldnames(psdTest.cfg),{'display'});
 multLabels = {'epochComp','interEpochs','interGroup'};
-summaryAnova = [];
-for iIdVar = 1:numel(idLabels)
-    summaryAnova.(idLabels{iIdVar}) = psdTest.cfg.(idLabels{iIdVar});
+summaryAnova = struct([]);
+nLine = 1;
+sigInteraction = [];
+
+for isessions = 1:2
+    for iband = 1:numel(bandLabels)
+        for iarea = 1:2
+            cfg = [];
+            cfg.sessions = sessions{isessions};
+            cfg.testArea = sip.ephys.area_label{iarea}; % ofc / striatum
+            cfg.based = 'session'; % animal / session
+            cfg.testQuant = 'Diff'; % Diff / Ratio / NormDf / Power
+            cfg.testBand = bandLabels{iband};
+            cfg.group = testGroup;
+            cfg.model = anovaModel;
+            % cfg.group = 'ld';
+            cfg.testPsd = psdContrast.(sessions{isessions}).(cfg.testArea);
+            psdTest = sipPsdAnova(cfg); % main ANOVA function
+            cfg.testBand = bandLabels;
+            idLabels = setdiff(fieldnames(psdTest.cfg),{'display'});
+            for iIdVar = 1:numel(idLabels)
+                summaryAnova(nLine).(idLabels{iIdVar}) = psdTest.cfg.(idLabels{iIdVar});
+            end
+            for iModelVar = 1:numel(psdTest.anova.tableLabels)
+                modelLabel = psdTest.anova.modelLabels{iModelVar};
+                tableLabel = strcat('pVal',psdTest.anova.tableLabels{iModelVar});
+                summaryAnova(nLine).(tableLabel) = psdTest.anova.mainTest{modelLabel,'pValue'};
+            end
+            for iCompVar = 1:nComp
+                summaryAnova(nLine).(multLabels{iCompVar}) = psdTest.anova.(multLabels{iCompVar});
+            end
+            nLine = nLine + 1;
+        end
+    end
 end
-for iModelVar = 1:numel(psdTest.anova.tableLabels)
-    modelLabel = psdTest.anova.modelLabels{iModelVar};
-    tableLabel = strcat('pVal',psdTest.anova.tableLabels{iModelVar});
-    summaryAnova.(tableLabel) = psdTest.anova.mainTest{modelLabel,'pValue'};
+
+sessInteraction = [];
+switch cfg.model
+    case 'mixed'
+        %Extract significant interactions form summaryAnova
+        sigResults = summaryAnova([summaryAnova.pValGroupEpoch] < 0.05);
+        refComp = 'interEpochs';
+        switchVars = [11 9 10 1:8];
+    case 'repeated'
+        sigResults = summaryAnova([summaryAnova.pValEpoch] < 0.05);
+        refComp = 'epochComp';
+        switchVars = [10 8 9 1:7];
 end
-for iCompVar = 1:3
-    summaryAnova.(multLabels{iCompVar}) = psdTest.anova.(multLabels{iCompVar});
+
+for iInt = 1:numel(sigResults)
+    sigFlags = sigResults(iInt).(refComp).pValue < 0.05;
+    sigTable = sigResults(iInt).(refComp)(sigFlags,:);
+    sigTable(:,'testBand') = {sigResults(iInt).testBand};
+    sigTable(:,'testArea' ) = {sigResults(iInt).testArea};
+    sigTable(:,'sessions' ) = {sigResults(iInt).sessions};
+    sessInteraction = cat(1,sessInteraction,sigTable);
 end
 
+clc
+disp(cfg)
+if ~isempty(sigResults)
+    sessInteraction = movevars(sessInteraction,switchVars);
+    %Keep only one direction per pair (avoid duplicated Cue-vs-Lick / Lick-vs-Cue rows)
+    epochOrder = sigResults(1).testEpochs;
+    keepRow = false(height(sessInteraction), 1);
+    for iPair = 1:height(sessInteraction)
+        idx1 = find(strcmp(epochOrder, string(sessInteraction.Epoch_1(iPair))));
+        idx2 = find(strcmp(epochOrder, string(sessInteraction.Epoch_2(iPair))));
+        keepRow(iPair) = idx1 < idx2;   % keeps e.g. Cue-vs-Lick, drops Lick-vs-Cue
+    end
+    sessInteraction = sessInteraction(keepRow, :);
+    sessInteraction.Properties.VariableTypes(1:3) = "categorical";
+    disp(sessInteraction)
+else
+    fprintf('\n -> No significant differences found <-\n')
+end
 
-%%
-plotData = psdTest.anova.data;
-
-% Bar graphs
-meanData = groupsummary(plotData,...
-    'Group', ...
-    "mean", ...
-    plotData.Properties.VariableNames(3:end));
-meanBar = meanData{:,3:end};
-hdMean = getEntry(meanData,'Group','hd');
-ldMean = getEntry(meanData,'Group','ld');
-
-stdData = groupsummary(plotData,...
-    'Group', ...
-    "std", ...
-    plotData.Properties.VariableNames(3:end));
-
-errBar = stdData{:,3:end}./sqrt(stdData{:,'GroupCount'});
-hdError = getEntry(stdData,'Group','hd');
-hdError = hdError{1,3:end}./sqrt(hdError.GroupCount);
-ldError = getEntry(stdData,'Group','ld');
-ldError = ldError{1,3:end}./sqrt(ldError.GroupCount);
-yLabel = strcat('Mean ',cfg.testBand,'',cfg.testQuant);
-
-
-hdData = getEntry(plotData,'Group','hd');
-hdData = hdData{:,3:end};
-
-wfig(2); clf
-clear hsp
-hsp(2) = subplot(1,3,2);
-
-barCfg = [];
-barCfg.position = 1:5;
-barCfg.bar_color = sip.graph.color.hd;
-barCfg.max_jitter = 0.2;
-barCfg.dot_color = sip.graph.color.hd;
-barCfg.error = true;
-barCfg.paired = false;
-barCfg.transparency = 0.5;
-
-bar_disp_dots(hdData,barCfg)
-
-hold off; box off
-set(gca,'xtick',1:5,'XTickLabel',psdTest.cfg.testEpochs)
-ylabel([yLabel ' - HD'])
-
-ldData = getEntry(plotData,'Group','ld');
-ldData = ldData{:,3:end};
-
-hsp(3) = subplot(1,3,3);
-barCfg = [];
-barCfg.position = 1:5;
-barCfg.bar_color = sip.graph.color.ld;
-barCfg.max_jitter = 0.2;
-barCfg.dot_color = sip.graph.color.ld;
-barCfg.error = true;
-barCfg.paired = false;
-barCfg.transparency = 0.6;
-
-bar_disp_dots(ldData,barCfg)
-
-hold off; box off
-set(gca,'xtick',1:5,'XTickLabel',psdTest.cfg.testEpochs)
-ylabel([yLabel ' - LD'])
-
-subplot(1,3,1);
-barWidht = 0.3;
-hdBar = bar(1:3:13,mean(hdData,'omitmissing'), ...
-    'FaceColor',sip.graph.color.hd, ...
-    'FaceAlpha',0.7,...
-    'BarWidth',barWidht);
-hold on
-ldBar = bar(2:3:14,mean(ldData,'omitmissing'), ...
-    'FaceColor',sip.graph.color.ld, ...
-    'FaceAlpha',0.8,...
-    'BarWidth',barWidht);
-errorbar(1:3:13,hdMean{1,3:end},hdError,'.k')
-errorbar(2:3:14,ldMean{1,3:end},ldError,'.k')
-hold off; box off
-ylabel([yLabel ' @' psdTest.cfg.testArea])
-set(gca,'xtick',1.5:3:13.5,'XTickLabel',psdTest.cfg.testEpochs)
-legend([hdBar, ldBar],{'HD','LD'}, ...
-    'Location','northwest', ...
-    'Box','off')
-
-linkaxes(hsp(2:3),'y')
 %% Compare early and late HD
+
+testGroup = 'hd';
 
 clc
 cfg = [];
 cfg.testArea = 'ofc'; % ofc / striatum
 
-earlyData = getEntry(psdContrast.early.(cfg.testArea),'group','hd');
+earlyData = getEntry(psdContrast.early.(cfg.testArea),'group',testGroup);
 earlyData = earlyData(:,1:104);
 earlyData(:,'group') = {'early'};
 
-lateData = getEntry(psdContrast.late.(cfg.testArea),'group','hd');
+lateData = getEntry(psdContrast.late.(cfg.testArea),'group',testGroup);
 lateData(:,'group') = {'late'};
 
+% PSD data selection 
+idVariables = earlyData.Properties.VariableNames(1:3);
+% Animal / Session -based ANOVA data selection 
+dataVariables = earlyData.Properties.VariableNames(5:end);
+earlytestPsd = groupsummary(earlyData,idVariables, ...
+    @(x)mean(x,'omitmissing'),dataVariables);
+% dataVariables = cfg.testPsd.Properties.VariableNames(5:end);
+
+
+%%
 cfg.based = 'session'; % animal / session
 cfg.testQuant = 'Diff'; % Diff / Ratio
 cfg.testBand = 'Theta';
-cfg.model = 'mixed';
+cfg.model = 'repeated';
+cfg.group = testGroup;
 cfg.testPsd = cat(1,earlyData,lateData);
 cfg.display = true;
 
