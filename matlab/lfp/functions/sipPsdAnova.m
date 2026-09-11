@@ -8,31 +8,8 @@ end
 testEpochs = {'PreCue','Cue','PreLick','Lick','PostLick'};
 withinDesign = table(categorical(testEpochs'), 'VariableNames', {'Epoch'});
 
-% PSD data selection 
-idVariables = cfg.testPsd.Properties.VariableNames(1:3);
-
-% Animal / Session -based ANOVA data selection 
-dataVariables = cfg.testPsd.Properties.VariableNames(5:end);
-switch cfg.based
-    case 'animal'
-        cfg.testPsd = groupsummary(cfg.testPsd,idVariables,"mean",dataVariables);
-        dataVariables = cfg.testPsd.Properties.VariableNames(5:end);
-    case 'session'
-        
-    otherwise
-        errorMsg = sprintf('\n--> cfg.based must be "animal" or "session"\n');
-        error(errorMsg)
-end
-
-% ANOVA data selection
-strVarCode = strcat(cfg.testBand,cfg.testQuant);
-testVarFlags = cellfun(@(x) contains(x,strVarCode),dataVariables);
-testVariables = dataVariables(testVarFlags);
-
-% ANOVA data format 
-testData = cfg.testPsd(:,['rat','group',testVariables]);
-testData.Properties.VariableNames = ['Rat','Group',testEpochs];
-testData.Group = categorical(testData.Group);
+% format data to process the ANOVA
+testData = formatSipAnova(cfg);
 
 % Mixed / Repeated ANOVA configuration 
 switch cfg.model
@@ -40,11 +17,17 @@ switch cfg.model
         formulaStr = sprintf('%s-%s ~ Group', testEpochs{1}, testEpochs{end}); 
         modelLabels = {'Group','(Intercept):Epoch','Group:Epoch'};
         tableLabels = {'Group','Epoch','GroupEpoch'};
+        multLabels = {'epochComp','interEpochs','interGroup'};
+        cfg.group = 'hd | ld';
     case 'repeated'
         testData = testData(testData.Group == cfg.group,:);
         formulaStr = sprintf('%s-%s ~1', testEpochs{1}, testEpochs{end});
         modelLabels = {'(Intercept):Epoch'};
         tableLabels = {'Epoch'};
+        if ~isfield(cfg,'group')
+            cfg.group = 'hd';
+        end
+        multLabels = {'epochComp'};
     otherwise
         errorMsg = sprintf('\n--> cfg.model must be "mixed" or "repeated"\n');
         error(errorMsg)
@@ -68,6 +51,7 @@ psdTest.anova.fitModel = rm;
 psdTest.anova.mainTest = ranovatbl;
 psdTest.anova.modelLabels = modelLabels;
 psdTest.anova.tableLabels = tableLabels;
+psdTest.anova.multLabels = multLabels;
 
 if ranovatbl{"(Intercept):Epoch","pValue"} < 0.05 
     psdTest.anova.epochComp = multcompare(rm,'Epoch');
