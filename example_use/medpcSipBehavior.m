@@ -1,6 +1,6 @@
 
 clear; clc                                
-sip = sipConfig('behavior');
+sip = sipConfig('behavior','lfp');
 behaviorFiles = sipFileList(sip.folder.support,'behavior');
 
 %% generating trial list
@@ -60,13 +60,15 @@ histCfg.figNumber = 2;
 
 lfpList = sipFileList(sip.folder.support,'lfp');
 fileIds = getID(behaviorFiles.medFiles(ifile));
-% fix lfpList to use ID instead of _id
-lfpFiles = lfpList(811:816);
+% fileIds.area = 'ofc';
+lfpFiles = getEntry(lfpList,fileIds);
 
 %%
 
 lfp = importdata(lfpFiles(1).file_path);
+
 % add a config to cut by bouts and not by trials
 % maybe create a new struct with all bouts concatenated including Ids and
 % then run trialLfp
+
 lfpStruct = trialLfp(lfp,behavior);
