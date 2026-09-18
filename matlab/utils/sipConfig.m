@@ -121,6 +121,8 @@ switch param
         cfg.spike.waveclus.graph.srate        = 30303;    % Sample rate
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+        cfg.data.tetrodes = importdata(fullfile(cfg.folder.support,'tetrodeSelection.mat'));
+
     case 'lfp'
         cfg.lfp.band_freq = [1 4;4 12;12 30;30 50];
         cfg.lfp.band_label = {'delta','theta','beta','gamma'};
@@ -141,6 +143,8 @@ switch param
         cfg.lfp.spgrm.tlim    = [-7 45]; % time interval in secs. 0 = trial start (cue onset)
         cfg.lfp.spgrm.flim    = [1 100]; % frequency band
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        cfg.data.tetrodes = importdata(fullfile(cfg.folder.support,'tetrodeSelection.mat'));
 
     case 'colors'
         cfg.color.rat     = jet(16);
