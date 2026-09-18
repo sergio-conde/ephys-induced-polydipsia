@@ -49,7 +49,7 @@ for ifile = 1%:length(file_list.eve)                                        % fo
     behCfg.file = file_list.eve(ifile).file_path;
 
     if ~isempty(behCfg.data)
-        events          = event_times(behCfg);                              % extract event information from nlynx
+        events          = extractEvent(behCfg);                              % extract event information from nlynx
         behavior(ifile) = format_behavior(events);                          % format and concatenate behavioral info
     else
         emptyIds   = cat(1,emptyIds,ifile);                                 % in case of a problem with nlynx, ev_cfg.data will be empty
