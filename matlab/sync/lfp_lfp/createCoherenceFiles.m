@@ -1,15 +1,12 @@
 clear; clc; 
-sip = sip_mainconfig; ft_defaults
+sip = sipConfig('lfp'); 
+ft_defaults
+load(fullfile(sip.folder.support,'lfpResampFiles.mat'))
+load(fullfile(sip.folder.proc,'behavior.mat'))
+load(fullfile(sip.folder.support,'lfpArtefactsLate.mat'))
 
-% list of files required
-load(fullfile(sip.file.support,'lfp_resamp_files.mat'))
 
-% supporting data required
-load(fullfile(sip.file.proc,'behavior.mat'))
-
-load(fullfile(sip.file.support,'lfpArtefactsLate.mat'))
-
-% %
+%%
 % lfp file list
 % tetrode: to compute only from those pairs
 % behavior: to cut trials
@@ -33,13 +30,20 @@ load(fullfile(sip.file.support,'lfpArtefactsLate.mat'))
 % sessions and tetrodes
 
 cfg               = [];
-cfg.lfp_list      = lfp_files;
-cfg.tetrode       = sip.ephys.tetrodes;
+cfg.lfpList       = lfpFiles;
+cfg.tetrode       = sip.data.tetrodes;
 cfg.epoch         = 'late';
-cfg.tet_selection = 'wide';
+cfg.tetSelection  = 'wide';
+cfg.raw           = 'ncs';
+cfg.rawFolder     = sip.folder.support;
 lateFiles         = pickLFP(cfg);
 
-sessionIds = getId(lateFiles,'tet_id');
+sessionIds = getID(lateFiles.list,'tetID',[],'struct');
+
+%% This step is temporary until everything is updated to use ID intead o _id
+% behavior = struct2table(behavior);
+% behavior.Properties.VariableNames([2:4 6]) = {...
+%     'cohortID','animalID','sessionID','tagID'};
 
 %%
 cohereCell = cell(16,1);
@@ -49,10 +53,10 @@ for isession = 5:length(sessionIds)
     fprintf('\nProcessing sess %i ... ',isession)
 
     fileIds = sessionIds(isession);
-    header_file = get_entry(sip.file_list.nlynx.ncs,fileIds);
+    headerFile = getEntry(lateFiles.rawFiles,fileIds);
 
     cfg             = [];
-    cfg.header      = ft_read_header(header_file(1).file_path);
+    cfg.header      = ft_read_header(headerFile(1).file_path);
     cfg.beh         = get_entry(behavior,fileIds);
     cfg.interval    = 'sip_trial';
     [trl,trlTable]  = trial_gen(cfg);
@@ -189,10 +193,10 @@ for isession = [7 10 13 16 18 22 25 28 31 34 37 40 43 46]%5:length(sessionIds)
     fprintf('\nProcessing sess %i ... ',isession)
 
     fileIds = sessionIds(isession);
-    header_file = get_entry(sip.file_list.nlynx.ncs,fileIds);
+    headerFile = get_entry(sip.file_list.nlynx.ncs,fileIds);
 
     cfg             = [];
-    cfg.header      = ft_read_header(header_file(1).file_path);
+    cfg.header      = ft_read_header(headerFile(1).file_path);
     cfg.beh         = get_entry(behavior,fileIds);
     cfg.interval    = 'lick';
     [trl,trlTable]  = trial_gen(cfg);
