@@ -16,9 +16,9 @@ switch analysis
         fileLists = load(fullfile(listFolder, '\rawFilesList.mat'),...
             "eveFiles","medFiles");
     case 'lfp'
-        fileLists = load(fullfile(listFolder, '\lfp_resamp_files.mat'),...
-            'lfp_files');
-        fileLists = fileLists.lfp_files;
+        fileLists = load(fullfile(listFolder, '\lfpResampFiles.mat'),...
+            'lfpFiles');
+        fileLists = fileLists.lfpFiles;
     case 'spike'
     otherwise
         fileLists = [];
