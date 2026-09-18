@@ -78,6 +78,16 @@ switch param
         cfg.behavior.interBout   = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
         cfg.behavior.minBoutDur  = [2 1];                            % minimum duration of one bout
 
+        cfg.medpc.events.leverPress = 1;
+        cfg.medpc.events.cue        = 2;
+        cfg.medpc.events.pellet     = 5;
+        cfg.medpc.events.lick       = 6;
+        cfg.medpc.events.headEntry  = 7;
+        cfg.medpc.events.sessionEnd = 100;
+        cfg.medpc.trialLabel = {'sip'};
+        cfg.medpc.trialStart = {'cue'};
+        cfg.medpc.medTime = 'T';
+
     case 'video'
         cfg.video.vrate        = 25;         % video sampling rate in frames/s
         cfg.video.videoRes     = [576 720];  % tracking video resolution
