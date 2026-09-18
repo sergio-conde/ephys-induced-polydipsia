@@ -58,17 +58,17 @@ for ifile = 1:length(outFileList)
         fileName = outFileList(ifile).name;
         switch fileType
             case 'ntt'
-                outFileList(ifile).tetrodeID = str2double(fileName(3:strfind(fileName,'.ntt') - 1));
+                outFileList(ifile).tetID = str2double(fileName(3:strfind(fileName,'.ntt') - 1));
                 outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.ntt') - 1);
                 outFileList(ifile).fileType = 'spike';
             case 'ncs'
-                outFileList(ifile).tetrodeID = str2double(fileName(4:strfind(fileName,'.ncs') - 1));
+                outFileList(ifile).tetID = str2double(fileName(4:strfind(fileName,'.ncs') - 1));
                 outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.ncs') - 1);
                 outFileList(ifile).fileType = 'lfp';
             case 'med'
                 outFileList(ifile).fileType = 'medpc';
             case 'sorted'
-                outFileList(ifile).tetrodeID = str2double(outFileList(ifile).tt(3:end));
+                outFileList(ifile).tetID = str2double(outFileList(ifile).tt(3:end));
                 outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.mat') - 1);
             otherwise
                 outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.mat') - 1);
@@ -76,7 +76,7 @@ for ifile = 1:length(outFileList)
     end
 
     if isfield(inFileList,'tet')
-        outFileList(ifile).tetrodeID = str2double(outFileList(ifile).tet(3:end));
+        outFileList(ifile).tetID = str2double(outFileList(ifile).tet(3:end));
     end
 
     if strcmp(session(1:4),'base') || strcmp(session,'habituation') || strcmp(session,'unknown')
