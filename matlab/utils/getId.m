@@ -11,27 +11,52 @@ function ids = getID(dataInfo,varargin)
 % Neuromodulation & Behavior Laboratory
 % Netherlands Institute for Neuroscience.
 
-
-outType = 'table';
-
-dataFields = fieldnames(dataInfo);
-idFields = dataFields(contains(dataFields,'ID'));
-
-if nargin > 1
-    idFields = setdiff(idFields,varargin{1},'stable');
-    if nargin > 2
-        outType = varargin{2};
-    end
-end
+cfg = checkCfg(varargin);
 
 if isstruct(dataInfo)
     dataInfo = struct2table(dataInfo);
+end
+dataFields = dataInfo.Properties.VariableNames;
+idFields = dataFields(contains(dataFields,cfg.idCoding));
+if ~isempty(cfg.exclude)
+    idFields = setdiff(idFields,cfg.exclude,'stable');
 end
 
 [~, idx] = unique(dataInfo(:,idFields),"rows","stable");
 ids = dataInfo(idx,idFields);
 
-switch outType
+switch cfg.outType
     case 'struct'
         ids = table2struct(ids);
 end
+
+% check input variables
+function cfg = checkCfg(ogVars)
+nVars = numel(ogVars);
+if isempty(ogVars)
+    cfg.exclude = '';
+    cfg.idCoding = 'ID';
+    cfg.outType = 'table';
+    return
+end
+if isstruct(ogVars{1})
+    cfg = ogVars{1};
+elseif ischar(ogVars{1})
+    if nVars < 3
+        ogVars{3} = [];
+    elseif nVars > 3
+        errorMsg = sprintf('\n--> Too many input parameters <--\n');
+        error(errorMsg)
+    end
+    cfg.exclude = ogVars{1};
+    cfg.idCoding = ogVars{2};
+    cfg.outType = ogVars{3};
+    if isempty(cfg.idCoding)
+        cfg.idCoding = 'ID';
+    end
+    if isempty(cfg.outType)
+        cfg.outType = 'table';
+    end
+end
+
+
