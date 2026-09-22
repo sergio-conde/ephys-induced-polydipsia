@@ -74,9 +74,10 @@ switch param
     case 'behavior'
         cfg.behavior.drinkGroup  = {'ld','hd'};                      % High and low drinkers label
         cfg.behavior.lickLabel   = {'plus','minus'};                 % Lick Plus and Minus label
-        cfg.behavior.events      = {'lick','headent'};               % main behavioral events
-        cfg.behavior.interBout   = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
-        cfg.behavior.minBoutDur  = [2 1];                            % minimum duration of one bout
+        
+        cfg.nlynx.events = {'lick','headent'};               % main behavioral events
+        cfg.nlynx.interBout   = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
+        cfg.nlynx.minBoutDur  = [2 1];                            % minimum duration of one bout
 
         cfg.medpc.events.leverPress = 1;
         cfg.medpc.events.cue        = 2;
@@ -87,6 +88,11 @@ switch param
         cfg.medpc.trialLabel = {'sip'};
         cfg.medpc.trialStart = {'cue'};
         cfg.medpc.medTime = 'T';
+
+        cfg.medpc.boutEvents.lick.interBout = 1;
+        cfg.medpc.boutEvents.lick.minBoutDur = 2;
+        cfg.medpc.boutEvents.headEntry.interBout = 1.5;
+        cfg.medpc.boutEvents.headEntry.minBoutDur = 1;
 
     case 'video'
         cfg.video.vrate        = 25;         % video sampling rate in frames/s
