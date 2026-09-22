@@ -36,18 +36,20 @@ cfg.epoch         = 'late';
 cfg.tetSelection  = 'wide';
 cfg.raw           = 'ncs';
 cfg.rawFolder     = sip.folder.support;
+% cfg.idCoding      = '_id';
 lateFiles         = pickLFP(cfg);
 
 sessionIds = getID(lateFiles.list,'tetID',[],'struct');
 
 %% This step is temporary until everything is updated to use ID intead o _id
-% behavior = struct2table(behavior);
-% behavior.Properties.VariableNames([2:4 6]) = {...
-%     'cohortID','animalID','sessionID','tagID'};
+behavior = struct2table(behavior);
+behavior.Properties.VariableNames([2:4 6 8 9]) = {...
+    'cohortID','animalID','sessionID','tagID','startTime','endTime'};
 
 %%
 cohereCell = cell(16,1);
 drinkFlags = cell(16,1);
+
 for isession = 5:length(sessionIds)
 
     fprintf('\nProcessing sess %i ... ',isession)
@@ -57,7 +59,7 @@ for isession = 5:length(sessionIds)
 
     cfg             = [];
     cfg.header      = ft_read_header(headerFile(1).file_path);
-    cfg.beh         = get_entry(behavior,fileIds);
+    cfg.beh         = getEntry(behavior,fileIds);
     cfg.interval    = 'sip_trial';
     [trl,trlTable]  = trial_gen(cfg);
 
