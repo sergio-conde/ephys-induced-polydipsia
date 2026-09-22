@@ -1,15 +1,27 @@
 function ids = getID(dataInfo,varargin)
 
-% ids = getId(dataInfo,exclLevel) gets the ids from any table of indexed
-% struct containing files lists, indexed data, etc. 
+% ids = getID(dataInfo) gets the ids from any table or indexed struct
+% containing file lists, indexed data, etc. All variable names
+% containing 'ID' are treated as id columns.
 %
-% dataInfo - table or struct
-% exclLevel - level to be excluded
+% ids = getID(dataInfo,exclude,idCoding,outType) or
+% ids = getID(dataInfo,cfg), with cfg a struct with the fields below,
+% lets you customize the id extraction.
 %
-% Schedule-Induced Polydipsia project. 
-% Sergio Conde-Ocazionez, August 2026. 
+% dataInfo  - table or struct containing (at least) the id columns
+% exclude   - id field name(s) to exclude from the output (default: '')
+% idCoding  - substring used to identify id columns in dataInfo
+%             (default: 'ID')
+% outType   - 'table' (default) or 'struct', output format
+%
+% Schedule-Induced Polydipsia project.
+% Sergio Conde-Ocazionez, August 2026.
 % Neuromodulation & Behavior Laboratory
 % Netherlands Institute for Neuroscience.
+
+if ~istable(dataInfo) && ~isstruct(dataInfo)
+    error('getID:invalidDataInfo','dataInfo must be a table or a struct.')
+end
 
 cfg = checkCfg(varargin);
 
@@ -18,8 +30,16 @@ if isstruct(dataInfo)
 end
 dataFields = dataInfo.Properties.VariableNames;
 idFields = dataFields(contains(dataFields,cfg.idCoding));
+if isempty(idFields)
+    error('getID:noIdFields', ...
+        'No fields matching id pattern ''%s'' were found in dataInfo.',cfg.idCoding)
+end
 if ~isempty(cfg.exclude)
     idFields = setdiff(idFields,cfg.exclude,'stable');
+    if isempty(idFields)
+        error('getID:allIdFieldsExcluded', ...
+            'All id fields were excluded; nothing left to index by.')
+    end
 end
 
 [~, idx] = unique(dataInfo(:,idFields),"rows","stable");
@@ -45,34 +65,27 @@ if isstruct(ogVars{1})
     cfg = ogVars{1};
     cfg = fillDefaults(cfg);
 elseif ischar(ogVars{1})
-    if nVars < 3
-        ogVars{3} = [];
-    elseif nVars > 3
-        errorMsg = sprintf('\n--> Too many input parameters <--\n');
-        error(errorMsg)
+    if nVars > 3
+        error('getID:tooManyInputs','\n--> Too many input parameters <--\n')
+    end
+    for iVar = nVars+1:3
+        ogVars{iVar} = [];
     end
     cfg.exclude = ogVars{1};
     cfg.idCoding = ogVars{2};
     cfg.outType = ogVars{3};
     cfg = fillDefaults(cfg);
-    % if isempty(cfg.idCoding)
-    %     cfg.idCoding = 'ID';
-    % end
-    % if isempty(cfg.outType)
-    %     cfg.outType = 'table';
-    % end
+else
+    error('getID:invalidInput', ...
+        'Optional input must be a config struct, or exclude/idCoding/outType as char arrays.')
 end
 
 function cfg = fillDefaults(cfg)
 defaultFields = {'exclude','idCoding','outType'};
 defaultVals = {'','ID','table'};
-for iField = 1:3
-    localField = defaultFields{iField};
-    if  ~isfield(cfg,localField)
-        cfg.(defaultFields{iField}) = defaultVals{iField};
-    elseif isempty(cfg.(localField))
-        cfg.(defaultFields{iField}) = defaultVals{iField};
+for iField = 1:numel(defaultFields)
+    f = defaultFields{iField};
+    if ~isfield(cfg,f) || isempty(cfg.(f))
+        cfg.(f) = defaultVals{iField};
     end
 end
-
-
