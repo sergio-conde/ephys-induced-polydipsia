@@ -65,6 +65,8 @@ for ifile = 1:length(outFileList)
                 outFileList(ifile).tetID = str2double(fileName(4:strfind(fileName,'.ncs') - 1));
                 outFileList(ifile).fileLabel = fileName(1:strfind(fileName,'.ncs') - 1);
                 outFileList(ifile).fileType = 'lfp';
+            case 'nev'
+                outFileList(ifile).fileType = 'eveNlynx';
             case 'med'
                 outFileList(ifile).fileType = 'medpc';
             case 'sorted'
