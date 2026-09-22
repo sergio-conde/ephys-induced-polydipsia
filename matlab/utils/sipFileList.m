@@ -14,7 +14,7 @@ function fileLists = sipFileList(listFolder,analysis)
 switch analysis
     case 'behavior'
         fileLists = load(fullfile(listFolder, '\rawFilesList.mat'),...
-            "eveFiles","medFiles");
+            "behNlynxFiles","behMedFiles");
     case 'lfp'
         fileLists = load(fullfile(listFolder, '\lfpResampFiles.mat'),...
             'lfpFiles');
