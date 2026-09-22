@@ -2,8 +2,8 @@ clear; clc
 cfg = sipConfig;
 
 % files configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rawConfig.mainPath = '\\vs03\VS03-NandB-1\tara\ephys_rat_sip\Data_collection\raw';          % data's root folder
-rawConfig.levelName = {'cohort','animal','session','raw_folder'};                               % labels of each organization level
+rawConfig.mainPath = cfg.folder.raw;          % data's root folder
+rawConfig.levelName = [cfg.folder.levelName,'rawFolder'];                               % labels of each organization level
 rawConfig.folderCode = {'*cohort*','w*','*','*'};                                          % string coding for each level (folders)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -39,7 +39,17 @@ rawConfig.fileCode = 'w*';            % files'string coding
 medFiles = projectFiles(rawConfig);   % files' list
 medFiles = addSipIds(medFiles,'med');   % add id fields
 
+%%
+% Behavior analysis uses .eve or medpc files
+eveIds = getID(eveFiles);
+medIds = getID(medFiles);
 
+% Find sessions with only medpc output files available
+[onlyMed, indxMed] = setdiff(medIds,eveIds,"rows");
+[~, indxNlyxn] = setdiff(eveIds,onlyMed,"rows");
+
+behMedFiles = medFiles(indxMed);
+behNlynxFiles = eveFiles(indxNlyxn);
 %% Save the raw files lists so each one can be loaded independently
 
 save([cfg.folder.support '\rawFilesList.mat'],...
@@ -48,4 +58,6 @@ save([cfg.folder.support '\rawFilesList.mat'],...
 "eveFiles",...
 "medFiles",...
 "cheFiles",...
-"nvtFiles");
+"nvtFiles", ...
+"behMedFiles", ...
+"behNlynxFiles");
