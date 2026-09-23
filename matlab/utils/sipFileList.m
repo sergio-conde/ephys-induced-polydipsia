@@ -1,4 +1,4 @@
-function fileLists = sipFileList(listFolder,analysis)
+function fileList = sipFileList(listFolder,analysis)
 
 % fileLists = sipFileList(listFolder,analysis) loads the files lists needed
 % according to specifica analysis of the
@@ -13,13 +13,19 @@ function fileLists = sipFileList(listFolder,analysis)
 
 switch analysis
     case 'behavior'
-        fileLists = load(fullfile(listFolder, '\rawFilesList.mat'),...
+        load(fullfile(listFolder, '\rawFilesList.mat'),...
             "behNlynxFiles","behMedFiles");
+        behNlynxFiles = rmfield(behNlynxFiles,"rawFolder");
+        jointList = cat(2,behNlynxFiles,behMedFiles);
+        cfg = [];
+        cfg.sessionID = [1 25];
+        cfg.contrast.sessionID = 'range';
+        fileList.behavior = getEntry(jointList,cfg);
     case 'lfp'
-        fileLists = load(fullfile(listFolder, '\lfpResampFiles.mat'),...
+        fileList = load(fullfile(listFolder, '\lfpResampFiles.mat'),...
             'lfpFiles');
-        fileLists = fileLists.lfpFiles;
+        fileList = fileList.lfpFiles;
     case 'spike'
     otherwise
-        fileLists = [];
+        fileList = [];
 end

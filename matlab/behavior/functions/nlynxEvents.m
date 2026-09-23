@@ -1,4 +1,4 @@
-function nlynxBehavior = nlynxEvents(cfg)
+function nlynxBeh = nlynxEvents(cfg)
 
 % events = event_times(cfg)
 % event_times extracts the cue and events (e.g. lick, head entry) times.
@@ -6,99 +6,94 @@ function nlynxBehavior = nlynxEvents(cfg)
 % stracted and stored in seconds.
 % It is used in behavior_time.m
 
-%%
-nlynxBehavior.cfg = cfg;
-ev_data = cfg.data;
+TOSECONDS = 1e-6;
 
-%--------------------- removing TTL extra triggers -----------------------------------%
-ttl_entries = cellfun(@(x) strfind(x,'TTL'),{ev_data(:).string},'UniformOutput',false);
-ttl_entries_idx = cellfun(@isempty,ttl_entries);
-ev_data(~ttl_entries_idx) = [];
-%--------------------- removing TTL extra triggers -----------------------------------%
+% read .eve file
+evData = ft_read_event_tara(cfg.file);
 
+% if there is a problem with the neuralynx .eve file
+if isempty(evData)
+    nlynxBeh = forceMedpcBehavior(cfg.id);
+    return
+end
 
-evLabels = {ev_data(:).string};
-[nlynxBehavior.labels,~,nlynxBehavior.sequence] = unique(evLabels);                          % extract event labels
-cue_triggers = find(cellfun(@(x) strcmp(x,'cue on/off'),{ev_data(:).string}));  % extract cue on and off triggers:
+nlynxBeh.cfg = cfg;
+evLabels = {evData(:).string};
 
-if ~isempty(cue_triggers)
+% remove extra TTL triggers
+ttlEvents = cellfun(@(x) strfind(x,'TTL'), evLabels,'UniformOutput',false);
+ttlIdx = cellfun(@isempty,ttlEvents);
+evData(~ttlIdx) = []; % clean event data
+evLabels(~ttlIdx) = []; % clean event labels
 
-    trigger_intervals = diff(double([ev_data(cue_triggers).timestamp])*1e-6);   % compute time between triggers
+% extract events from input struct
+pelletEvents = find(cellfun(@(x) strcmp(x,'pellet'),evLabels));
+preSessionEvents = find(cellfun(@(x) strcmp(x,'start/end (pre)session'),evLabels));
+cueEvents = find(cellfun(@(x) strcmp(x,'cue on/off'),evLabels));  % extract cue on and off triggers:
 
+[nlynxBeh.labels,~,nlynxBeh.sequence] = unique(evLabels); % store event labels
+nlynxBeh.eventTimes = double([evData(:).timestamp]) * TOSECONDS; % trigger times sequence
+
+% extract pre-session timestamps
+nlynxBeh.trigger.pre = preSessionEvents;
+preTimes = double([evData(nlynxBeh.trigger.pre).timestamp]) * TOSECONDS;
+if length(nlynxBeh.trigger.pre) == 3
+    nlynxBeh.timeStamps.pre = preTimes; % pre session trigger times
+elseif length(nlynxBeh.trigger.pre) == 2
+    if diff(preTimes) > 600 % 10 minutes
+      nlynxBeh.timeStamps.pre = [nan preTimes];
+    else
+      nlynxBeh.timeStamps.pre = [preTimes nan]; 
+    end
+else
+    if preTimes > 600
+        nlynxBeh.timeStamps.pre = [nan nan preTimes];
+    else
+        nlynxBeh.timeStamps.pre = [nan nan nan]; 
+    end
+end
+
+% extract cue timestamps (there are different originial strings to mark
+% cues in the neuralynx files)
+if ~isempty(cueEvents)
+    eventIntervals = diff(double([evData(cueEvents).timestamp]) * TOSECONDS);   % compute time between triggers
     % ideally, cue triggers should be paired (on-off). However, there are
-    % different strategies trhoughtout th sessions of signalizing the end 
+    % different strategies trhoughtout the sessions to mark the end 
     % of the cue presentation in the .nev files. 
     % This if is ment to deal with that.
-    
-    if mean(trigger_intervals(1:2:end)) > 6 % unpaired labeling 
-        nlynxBehavior.trigger.cue_on   = cue_triggers;
-        nlynxBehavior.trigger.cue_off  = find(cellfun(@(x) strcmp(x,'pellet'),evLabels));
+    if mean(eventIntervals(1:2:end)) > 6 % unpaired labeling 
+        nlynxBeh.trigger.cueOn = cueEvents;
+        nlynxBeh.trigger.cueOff = pelletEvents;
     else    % paired labeling
-        nlynxBehavior.trigger.cue_on   = cue_triggers(1:2:end);
-        nlynxBehavior.trigger.cue_off  = cue_triggers(2:2:end);
+        nlynxBeh.trigger.cueOn = cueEvents(1:2:end);
+        nlynxBeh.trigger.cueOff = cueEvents(2:2:end);
     end
 else
-    nlynxBehavior.trigger.cue_on   = find(cellfun(@(x) strcmp(x,'cue on'),evLabels));
-    nlynxBehavior.trigger.cue_off  = find(cellfun(@(x) strcmp(x,'pellet'),evLabels));
+    nlynxBeh.trigger.cueOn = find(cellfun(@(x) strcmp(x,'cue on'),evLabels));
+    nlynxBeh.trigger.cueOff = pelletEvents;
 end
+cueOnTimeStamps = [evData(nlynxBeh.trigger.cueOn).timestamp];
+nlynxBeh.timeStamps.cue = double(cueOnTimeStamps) * TOSECONDS; % cue On timeStamps
 
-nlynxBehavior.trigger.pre = find(cellfun(@(x) strcmp(x,'start/end (pre)session'),evLabels));
-pre_times          = double([ev_data(nlynxBehavior.trigger.pre).timestamp])*1e-6;
-if length(nlynxBehavior.trigger.pre) == 3
-    nlynxBehavior.trig_time.pre = pre_times; % pre session trigger times
-elseif length(nlynxBehavior.trigger.pre) == 2
-    if diff(pre_times) > 600 % 10 minutes
-      nlynxBehavior.trig_time.pre = [nan pre_times];
-    else
-      nlynxBehavior.trig_time.pre = [pre_times nan]; 
-    end
-else
-    if pre_times > 600
-        nlynxBehavior.trig_time.pre = [nan nan pre_times];
-    else
-        nlynxBehavior.trig_time.pre = [nan nan nan]; 
-    end
-end
-% events.trigger.pre = find(cellfun(@(x) strcmp(x,'start/end (pre)session'),ev_labels));
-% if length(events.trigger.pre) == 3
-%     events.trig_time.pre = double([ev_data(events.trigger.pre).timestamp])*1e-6; % pre session trigger times
-% else
-%     events.trig_time.pre = [-1 -1 -1];
-% end
-
-
-nlynxBehavior.trig_time.cue_on = double([ev_data(nlynxBehavior.trigger.cue_on).timestamp])*1e-6; % cue presentation times
+% extract behavior events timestamps and bouts
 for ievent = 1:length(cfg.events)
-    local_event = cfg.events{ievent};   % event label
+    localEvent = cfg.events{ievent};   % event label
+   
+    nlynxBeh.eventID.([localEvent 'ID']) = find(cellfun(@(x) strcmp(x,localEvent),nlynxBeh.labels));
+    nlynxBeh.trigger.(localEvent) = find(cellfun(@(x) strcmp(x,localEvent),evLabels));
+    nlynxBeh.timeStamps.(localEvent) = double([evData(nlynxBeh.trigger.(localEvent)).timestamp]) * TOSECONDS;
 
-    nlynxBehavior.event_id.([local_event '_id'])   = find(cellfun(@(x) strcmp(x,local_event),nlynxBehavior.labels));
-    nlynxBehavior.trigger.(local_event)            = find(cellfun(@(x) strcmp(x,local_event),evLabels));
-    nlynxBehavior.trig_time.(local_event)          = double([ev_data(nlynxBehavior.trigger.(local_event)).timestamp]) * 1e-6;
-
-    ev_times    = nlynxBehavior.trig_time.(local_event);
-
-    if ~isempty(ev_times)
-
-        diff_event  = [cfg.inter_bout(ievent) + 1 diff(ev_times)] > cfg.inter_bout(ievent);
-        start_times = ev_times(diff_event);
-        end_times   = ev_times([diff_event(2:end) true]);
-        duration    = end_times - start_times;
-        trigg_count = diff(find([diff_event true]));
-
-        trigg_count(duration < cfg.min_dur(ievent)) = [];
-        start_times(duration < cfg.min_dur(ievent)) = [];
-        duration(duration < cfg.min_dur(ievent))    = [];
-        
-
-        nlynxBehavior.time.(local_event).start       = start_times;
-        nlynxBehavior.time.(local_event).duration    = duration;
-        nlynxBehavior.time.(local_event).trigg_count = trigg_count;
+    if ~isempty(nlynxBeh.timeStamps.(localEvent))
+        boutList = extractBouts(nlynxBeh.timeStamps.(localEvent), ...
+                cfg.interBout(ievent), ...
+                cfg.minBoutDur(ievent));
+        nlynxBeh.bout.(localEvent).start  = boutList.boutStart;
+        nlynxBeh.bout.(localEvent).duration = boutList.duration;
+        nlynxBeh.bout.(localEvent).triggCount = boutList.triggCount; 
     else
-        nlynxBehavior.time.(local_event).start       = [];
-        nlynxBehavior.time.(local_event).duration    = [];
-        nlynxBehavior.time.(local_event).trigg_count = [];
-    end
-    
+        nlynxBeh.bout.(localEvent).start = [];
+        nlynxBeh.bout.(localEvent).duration = [];
+        nlynxBeh.bout.(localEvent).triggCount = [];
+    end    
 end
-nlynxBehavior.time_axis = double([ev_data(:).timestamp])*1e-6; % trigger times sequence
-nlynxBehavior.beh_file = 'nev';
+nlynxBeh.fileType = 'nev';

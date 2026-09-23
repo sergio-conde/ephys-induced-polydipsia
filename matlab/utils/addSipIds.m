@@ -27,6 +27,7 @@ function outFileList = addSipIds(inFileList,fileType)
 % Neuromodulation & Behavior Laboratory
 % Netherlands Institute for Neuroscience.
 
+ratIds = setRatIds;
 
 outFileList = inFileList;
 for ifile = 1:length(outFileList)
@@ -40,6 +41,11 @@ for ifile = 1:length(outFileList)
 
     animal = outFileList(ifile).animal;
     outFileList(ifile).animalID = str2double(animal(2:end));
+
+    idFlag = ratIds.cohortID == outFileList(ifile).cohortID & ...
+        ratIds.animalID == outFileList(ifile).animalID;
+
+    outFileList(ifile).tagID = ratIds.tagID(idFlag);
 
     session = outFileList(ifile).session;
     if strcmp(session,'baseline1')

@@ -28,9 +28,11 @@ for icohort = 1:length(selRats)
         ratTag = ratTag + 1;
     end
 end
+ratIds.Properties.VariableTypes(1) = "categorical";
 
 if nargin > 0
     load(groupFile,'drinkGroup')
     ratIds.drinkID = drinkGroup.id;
-    ratIds.drinkLabel = drinkGroup.label;
+    ratIds.drinkLabel = categorical(drinkGroup.label);
 end
+

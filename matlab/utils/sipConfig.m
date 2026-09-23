@@ -79,7 +79,6 @@ switch param
         cfg.nlynx.interBout   = [1 1.5];                          % maximum time between behavioral events to be considered as part of the same bout
         cfg.nlynx.minBoutDur  = [2 1];                            % minimum duration of one bout
 
-        cfg.medpc.events.leverPress = 1;
         cfg.medpc.events.cue        = 2;
         cfg.medpc.events.pellet     = 5;
         cfg.medpc.events.lick       = 6;
