@@ -28,12 +28,14 @@ for ifile = 1:numel(fileList.behavior)
         behavior(iline) = formatBehavior(fileData);
 
         % include water intake
-        water = [];
-        water.id = localIds;
-        water.file = waterFiles(water.id.cohortID).filePath;
-        behavior(iline).waterIntake = getWaterIntake(localIds);
+        % water = [];
+        % water.id = localIds;
+        % water.file = waterFiles(water.id.cohortID).filePath;
+        % behavior(iline).waterIntake = getWaterIntake(localIds);
 
         iline = iline + 1;
     end
 end
+% save('M:\GitHub\ephys-induced-polydipsia\example_data\behavior\behavior.mat',"behavior")
+
 

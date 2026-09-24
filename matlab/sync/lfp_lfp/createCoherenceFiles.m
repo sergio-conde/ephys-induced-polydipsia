@@ -2,9 +2,9 @@ clear; clc;
 sip = sipConfig('lfp'); 
 ft_defaults
 load(fullfile(sip.folder.support,'lfpResampFiles.mat'))
-load(fullfile(sip.folder.proc,'behavior.mat'))
+load('M:\GitHub\ephys-induced-polydipsia\example_data\behavior\behavior.mat')
+% load(fullfile(sip.folder.proc,'behavior.mat'))
 load(fullfile(sip.folder.support,'lfpArtefactsLate.mat'))
-
 
 %%
 % lfp file list
@@ -58,15 +58,15 @@ for isession = 5:length(sessionIds)
     headerFile = getEntry(lateFiles.rawFiles,fileIds);
 
     cfg             = [];
-    cfg.header      = ft_read_header(headerFile(1).file_path);
+    cfg.header      = ft_read_header(headerFile(1).filePath);
     cfg.beh         = getEntry(behavior,fileIds);
     cfg.interval    = 'sip_trial';
-    [trl,trlTable]  = trial_gen(cfg);
+    [trl,trlTable]  = trialGen(cfg);
 
     % this trl coming from trial_gen is time, not samples as the one coming
     % from ft_definetrials. I should call this differently. 
 
-    sessArtefact = get_entry(artefacts,fileIds);
+    sessArtefact = getEntry(artefacts,fileIds);
 
     % loopFiles = get_entry(lateFiles,fileIds);
     lfps.ids = fileIds;

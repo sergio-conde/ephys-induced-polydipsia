@@ -16,35 +16,35 @@ function [trl,trlList] = sipWoi(cfg)
 cfg.srate = cfg.header.Fs;
 
 if ~isfield(cfg,'cueDur')
-    cfg.cueDur = 5;
+    cfg.cueDuration = 5;
 end
 if ~isfield(cfg,'events')
-    cfg.events  = {'lick','headent'};
+    cfg.events  = {'lick','headEntry'};
 end
 if ~isfield(cfg,'minDur')
-    cfg.minDur = 1;
+    cfg.minDuration = 1;
 end
 
 cueStart = cfg.beh.cueOn;
 
 % configuration to analyze the ~3min interval before session start
-preSessTrl    = [cfg.beh.start cueStart(1)];
+preSessTrl    = [cfg.beh.startTime cueStart(1)];
 preSessId     = 0;
-preSessLab    = {'pre_sess'};
+preSessLab    = {'preSession'};
 preSessTrlId  = 1;
 nwoiPreSess   = 1;
 
 % configuration to analyze interval before cue delivery (i.e. in the
 % previous ITI)
-preCue        = cueStart - cfg.cueDur;
+preCue        = cueStart - cfg.cueDuration;
 preCueTrl     = [preCue; cueStart]';
 preCueId      = -1 * ones(length(cueStart),1);
-preCueLab     = repmat({'pre_cue'},length(cueStart),1);
+preCueLab     = repmat({'preCue'},length(cueStart),1);
 preCueTrlId   = (1:length(cueStart))';
 nwoiPreCue    = ones(length(cueStart),1);
 
 % configuration to analyze cue intervals
-cueEnd     = cueStart + cfg.cueDur;
+cueEnd     = cueStart + cfg.cueDuration;
 cueTrl     = [cueStart; cueEnd]';
 cueId      = ones(length(cueStart),1);
 cueLab     = repmat({'cue'},length(cueStart),1);
@@ -52,7 +52,7 @@ cueTrlId   = (1:length(cueStart))';
 nwoiCue    = ones(length(cueStart),1);
 
 % configuration to analyze the inter-cue-intervals (a.k.a ITI)
-iciTrl     = [cueTrl(:,2) [cueTrl(2:end,1); cfg.beh.end]];
+iciTrl     = [cueTrl(:,2) [cueTrl(2:end,1); cfg.beh.endTime]];
 iciId      = 2 * ones(length(cueStart),1);
 iciLab     = repmat({'ici'},length(cueStart),1);
 iciTrlId   = (1:length(cueStart))';
@@ -64,15 +64,15 @@ evId  = [];
 evLab = {};
 for ievent = 1:length(cfg.events)
     evStart  = cfg.beh.([cfg.events{ievent} 'On']);
-    evEnd    = evStart + cfg.beh.([cfg.events{ievent} 'Dur']);
-    evTrl    = cat(1,evTrl, [evStart; evEnd]');
+    evEnd    = evStart + cfg.beh.([cfg.events{ievent} 'Duration']);
+    evTrl    = cat(1,evTrl, [evStart evEnd]);
     evId     = cat(1,evId, (ievent + 2) * ones(length(evStart),1));
     evLab    = cat(1,evLab,repmat(cfg.events(ievent),length(evStart),1));
 end
 
 %%%%%%% extract the trial which each event happened on %%%%%%%%%%%%%%%%%%%%
 if ~isempty(evTrl)
-    [~,~,evTrlId] = histcounts(evTrl(:,1),[cfg.beh.cueOn cfg.beh.end]);
+    [~,~,evTrlId] = histcounts(evTrl(:,1),[cfg.beh.cueOn cfg.beh.endTime]);
     nwoiEv = nan(size(evTrlId));
     for id = unique(evId)'
         for itr = unique(evTrlId(evId == id))'
@@ -96,11 +96,11 @@ nwoiTr    = [nwoiPreSess;nwoiPreCue;nwoiCue;nwoiIci;nwoiEv];
 samples   = (allTrl - double(cfg.header.FirstTimeStamp))./cfg.header.TimeStampPerSample + 1;
 tabData   = [allTrl round(samples) duration allIds trialId nwoiTr];
 trlList   = array2table(tabData,"VariableNames",...
-    {'t_start','t_end','sample_start','sample_end','duration','woi_id','trial_id','nwoi_tr'});
-trlList = addvars(trlList,woiLabel,'NewVariableNames','woi_label');
+    {'timeStart','timeEnd','sampleStart','sampleEnd','duration','woiID','trialID','nWoiTrial'});
+trlList = addvars(trlList,woiLabel,'NewVariableNames','woiLabel');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% extract inter-woi intervals %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-woiFlags   = trlList.woi_id == 1 | trlList.woi_id > 2;
+woiFlags   = trlList.woiID == 1 | trlList.woiID > 2;
 iwiLabel   = cell([],1);
 iwiTrl     = [];
 iwiId      = [];
@@ -109,19 +109,19 @@ nwoiIwi    = [];
 
 for itrial = 1:length(cueStart)
 
-    iciData    = trlList(trialId == itrial & trlList.woi_id == 2,:);
+    iciData    = trlList(trialId == itrial & trlList.woiID == 2,:);
     trialData  = trlList(trialId == itrial & woiFlags,:);
-    trialData  = sortrows(trialData(trialData.trial_id == itrial,:),'t_start');
+    trialData  = sortrows(trialData(trialData.trialID == itrial,:),'timeStart');
 
     if height(trialData) > 1
-        tempLabels = cat(2,trialData.woi_label(1:end - 1), trialData.woi_label(2:end));
+        tempLabels = cat(2,trialData.woiLabel(1:end - 1), trialData.woiLabel(2:end));
 
         for ilabel = 1:size(tempLabels,1)
             iwiLabel = cat(1,iwiLabel,strcat(tempLabels{ilabel,1},'_',tempLabels{ilabel,2}));
         end
 
-        trialIwi   = [trialData.t_end [trialData.t_start(2:end); iciData.t_end]];
-        iwiLabel   = cat(1,iwiLabel,strcat(trialData.woi_label(end),'_cue'));
+        trialIwi   = [trialData.timeEnd [trialData.timeStart(2:end); iciData.timeEnd]];
+        iwiLabel   = cat(1,iwiLabel,strcat(trialData.woiLabel(end),'_cue'));
 
         iwiTrl     = cat(1,iwiTrl,trialIwi);
         iwiId      = cat(1,iwiId,zeros(size(trialIwi,1),1));
@@ -138,12 +138,12 @@ if ~isempty(iwiTrl)
     samples   = (iwiTrl - double(cfg.header.FirstTimeStamp))./cfg.header.TimeStampPerSample + 1;
     iwiData   = [iwiTrl round(samples) duration iwiId iwiTrlId nwoiIwi];
     iwiList   = array2table(iwiData,"VariableNames",...
-        {'t_start','t_end','sample_start','sample_end','duration','woi_id','trial_id','nwoi_tr'});
-    iwiList = addvars(iwiList,iwiLabel,'NewVariableNames','woi_label');
+        {'timeStart','timeEnd','sampleStart','sampleEnd','duration','woiID','trialID','nWoiTrial'});
+    iwiList = addvars(iwiList,iwiLabel,'NewVariableNames','woiLabel');
     trlList = [trlList;iwiList]; % add inter-woi intervals
 end
 
-shortTimes            = trlList.duration < cfg.minDur * 1e6;
+shortTimes            = trlList.duration < cfg.minDuration * 1e6;
 trlList(shortTimes,:) = [];
 trl(shortTimes,:)     = [];
 
@@ -151,16 +151,16 @@ trl(shortTimes,:)     = [];
 
 if isfield(cfg,'woi')
     switch cfg.woi
-        case {'pre_cue','cue','lick','headent','ici'}
-            trl      = trl(strcmp(trlList.woi_label,cfg.woi),:);
-            trlList  = trlList(strcmp(trlList.woi_label,cfg.woi),:);
+        case {'preCue','cue','lick','headent','ici'}
+            trl      = trl(strcmp(trlList.woiLabel,cfg.woi),:);
+            trlList  = trlList(strcmp(trlList.woiLabel,cfg.woi),:);
             
         case 'event'
-            trl      = trl(trlList.woi_id > 2,:);
-            trlList  = trlList(trlList.woi_id > 2,:);
+            trl      = trl(trlList.woiID > 2,:);
+            trlList  = trlList(trlList.woiID > 2,:);
         case 'iwi'
-            trl      = trl(trlList.woi_id == 0,:);
-            trlList  = trlList(trlList.woi_id == 0,:);
+            trl      = trl(trlList.woiID == 0,:);
+            trlList  = trlList(trlList.woiID == 0,:);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% select specific wois %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
